@@ -31,9 +31,6 @@ Status:
 + Numerical arguments that might be enums are printed as enums.
 + String arguments are printed as properly escaped strings.
 
-Missing features:
-+ Arrays are not printed properly.
-
 Issues:
 - Objects created by the GL context while tracing is enabled have a property
   added to them to track their identity. This extra property could confuse

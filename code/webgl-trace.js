@@ -169,6 +169,32 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
   
   var objectNameProperty = '__webgl_trace_name__';
   
+  var arrayTypeDict = {
+  	"[object WebGLByteArray]" : "WebGLByteArray",
+  	"[object WebGLUnsignedByteArray]" : "WebGLUnsignedByteArray",
+  	"[object WebGLShortArray]" : "WebGLShortArray",
+  	"[object WebGLUnsignedShortArray]" : "WebGLUnsignedShortArray",
+  	"[object WebGLIntArray]" : "WebGLIntArray",
+  	"[object WebGLUnsignedIntArray]" : "WebGLUnsignedIntArray",
+  	"[object WebGLFloatArray]" : "WebGLFloatArray"
+  }
+  
+  function asWebGLArray(a) {
+  	var arrayType = arrayTypeDict[a];
+  	if (arrayType === undefined) {
+  	    return undefined;
+  	}
+  	var buf = 'new ' + arrayType + '( [';
+  	for (var i = 0; i < a.length; i++) {
+  	    if (i > 0 ) {
+  	        buf += ', ';
+  	    }
+  	    buf += a.get(i);
+  	}
+  	buf += '] )';
+  	return buf;
+  };
+  
   function traceFunctionCall(functionName, args) {
         var argStr = "";
         for (var ii = 0; ii < args.length; ++ii) {
@@ -177,9 +203,12 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
                 argStr += ', ';
             }
             var objectName = arg[objectNameProperty];
+            var webGLArray = asWebGLArray(arg);
             if (objectName != undefined ) {
                 argStr += objectName;
-            } else if (typeof(arg) == "string") {
+            } else if (webGLArray != undefined) {
+            	argStr += webGLArray;
+            }else if (typeof(arg) == "string") {
                 argStr += quote(arg);
             } else if ( mightBeEnum(arg) ) {
                 argStr += 'gl.' + glEnumToString(arg);
@@ -188,7 +217,7 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
             }
         }
         return "gl." + functionName +  "(" + argStr + ");";
-      };
+  };
 
   // Makes a function that calls a WebGL function and then calls getError.
   function makeErrorWrapper(ctx, functionName) {
