@@ -1,0 +1,41 @@
+WebGL-Trace
+
+Introduction:
+
+WebGL-Trace provide a tracing utility for WebGL development.
+
+
+How to use it:
+
+1) Add this line to your WebGL application html file:
+
+    <script src="webgl-trace.js"></script>
+
+2) Wrap your WebGL context as follows:
+
+	gl = canvas.getContext("experimental-webgl");
+    gl = WebGLDebugUtils.makeDebugContext(gl);
+    
+3) Use the gl.setTracing() function to enable / disable tracing.
+
+	gl.setTracing(true);
+	... make a bunch of gl calls ...
+	gl.setTracing(false);
+	
+4) Run your program in a WebGL-compatible browser, and then look
+   at the Browser's Javascript console to see the trace output.
+
+Status:
+
++ All webgl functions are traced.
++ Numerical arguments that might be enums are printed as enums.
++ String arguments are printed as properly escaped strings.
+
+Missing features:
++ Objects are not printed properly.
++ Arrays are not printed properly.
+
+Credits:
+
++ webgl-trace is based on Gregg Tavares's webgl-debug.js utility.
++ The files in tests/learningwebgl come from http://learningwebgl.com
