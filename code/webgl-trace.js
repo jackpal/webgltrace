@@ -202,7 +202,10 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
             if ( ii > 0 ) {
                 argStr += ', ';
             }
-            var objectName = arg[objectNameProperty];
+            var objectName;
+            if (arg !== null) {
+                objectName = arg[objectNameProperty];
+            }
             var webGLArray = asWebGLArray(arg);
             if (objectName != undefined ) {
                 argStr += objectName;
