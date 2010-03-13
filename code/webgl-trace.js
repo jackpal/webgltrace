@@ -111,57 +111,80 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
   
   ctx.setTracing = function (newTracing) {
       if (!tracing && newTracing) {
-      	log('gl.setTracing(' + newTracing + ');');
+        log('gl.setTracing(' + newTracing + ');');
       }
       tracing = newTracing;
   }
   
   var escapeDict = {
-  	'\'' : '\\\'',
-  	'\"' : '\\\"',
-  	'\\' : '\\\\',
-  	'\b' : '\\b',
-  	'\f' : '\\f',
-  	'\n' : '\\n',
-  	'\r' : '\\r',
-  	'\t' : '\\t'
+    '\'' : '\\\'',
+    '\"' : '\\\"',
+    '\\' : '\\\\',
+    '\b' : '\\b',
+    '\f' : '\\f',
+    '\n' : '\\n',
+    '\r' : '\\r',
+    '\t' : '\\t'
   };
   
   function quote(s) {
-  	var q = '\'';
-  	var l = s.length;
-  	for (var i = 0; i < l; i++) {
-  	    var c = s.charAt(i);
-  	    var d = s.charCodeAt(i);
-  	    var e = escapeDict[c];
-  	    if ( e != undefined ) {
-  	        q += e;
-  	    } else if ( d < 32 || d >= 128 ) {
-  	        var h = '000' + d.toString(16);
-  	    	q += '\\u' + h.substring(h.length - 4);
-  	    } else {
-  	        q += s.charAt(i);
-  	    }
-  	}
-  	q += '\'';
-  	return q;
+    var q = '\'';
+    var l = s.length;
+    for (var i = 0; i < l; i++) {
+        var c = s.charAt(i);
+        var d = s.charCodeAt(i);
+        var e = escapeDict[c];
+        if ( e != undefined ) {
+            q += e;
+        } else if ( d < 32 || d >= 128 ) {
+            var h = '000' + d.toString(16);
+            q += '\\u' + h.substring(h.length - 4);
+        } else {
+            q += s.charAt(i);
+        }
+    }
+    q += '\'';
+    return q;
   }
+    
+  function genSymMaker(name) {
+      var counter = 0;
+      return function() {
+          var sym = name + counter;
+	      counter++;
+	      return sym;
+	  }
+  }
+  
+  var constructorDict = {
+    "createBuffer" : genSymMaker("buffer"),
+    "createFrameBuffer": genSymMaker("frameBuffer"),
+    "createProgram": genSymMaker("program"),
+    "createRenderbuffer": genSymMaker("renderBuffer"),
+    "createShader": genSymMaker("shader"),
+    "createTexture": genSymMaker("texture"),
+    "readPixels": genSymMaker("pixels")
+  };
+  
+  var objectNameProperty = '__webgl_trace_name__';
   
   function traceFunctionCall(functionName, args) {
         var argStr = "";
-        var arg;
         for (var ii = 0; ii < args.length; ++ii) {
-        	arg = args[ii];
-        	if ( ii > 0 ) {
-        		argStr += ', ';
-        	}
-        	if (typeof(arg) == "string") {
-        		argStr += quote(arg);
-        	} else if ( mightBeEnum(arg) ) {
-        		argStr += 'gl.' + glEnumToString(arg);
-        	} else {
-        		argStr += arg;
-        	}
+            var arg = args[ii];
+            if ( ii > 0 ) {
+                argStr += ', ';
+            }
+            var objectName = arg[objectNameProperty];
+            if (objectName != undefined ) {
+                argStr += objectName;
+            } else if (typeof(arg) == "string") {
+                argStr += quote(arg);
+            } else if ( mightBeEnum(arg) ) {
+                argStr += 'gl.' + glEnumToString(arg);
+            } else {
+                argStr += arg;
+            }
         }
         return "gl." + functionName +  "(" + argStr + ");";
       };
@@ -169,10 +192,24 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
   // Makes a function that calls a WebGL function and then calls getError.
   function makeErrorWrapper(ctx, functionName) {
     return function() {
+      var resultName;
       if (tracing) {
-          log(traceFunctionCall(functionName, arguments));
+          var prefix = '';
+          // Should we remember the result for later?
+          objectNamer = constructorDict[functionName];
+          if (objectNamer != undefined) {
+              resultName = objectNamer();
+              prefix = 'var ' + resultName + ' = ';
+          }
+          log(prefix + traceFunctionCall(functionName, arguments));
       }
+      
       var result = ctx[functionName].apply(ctx, arguments);
+      
+      if (tracing && resultName != undefined) {
+          result[objectNameProperty] = resultName;
+      }
+      
       var err = ctx.getError();
       if (err != 0) {
         glErrorShadow[err] = true;
