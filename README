@@ -13,15 +13,15 @@ How to use it:
 
 2) Wrap your WebGL context as follows:
 
-	gl = canvas.getContext("experimental-webgl");
+    gl = canvas.getContext("experimental-webgl");
     gl = WebGLDebugUtils.makeDebugContext(gl);
     
 3) Use the gl.setTracing() function to enable / disable tracing.
 
-	gl.setTracing(true);
-	... make a bunch of gl calls ...
-	gl.setTracing(false);
-	
+    gl.setTracing(true);
+    ... make a bunch of gl calls ...
+    gl.setTracing(false);
+    
 4) Run your program in a WebGL-compatible browser, and then look
    at the Browser's Javascript console to see the trace output.
 
