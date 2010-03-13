@@ -163,6 +163,7 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
     "createRenderbuffer": genSymMaker("renderBuffer"),
     "createShader": genSymMaker("shader"),
     "createTexture": genSymMaker("texture"),
+    "getUniformLocation": genSymMaker("uniformLocation"),
     "readPixels": genSymMaker("pixels")
   };
   
