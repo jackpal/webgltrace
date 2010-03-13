@@ -6,6 +6,7 @@
 
 <script type="text/javascript" src="sylvester.js"></script>
 <script type="text/javascript" src="glUtils.js"></script>
+<script src="../../code/webgl-trace.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
   varying vec4 vColor;
@@ -37,6 +38,8 @@
   function initGL(canvas) {
     try {
       gl = canvas.getContext("experimental-webgl");
+      gl = WebGLDebugUtils.makeDebugContext(gl);
+      gl.setTracing(true);
       gl.viewport(0, 0, canvas.width, canvas.height);
     } catch(e) {
     }
@@ -357,6 +360,7 @@
   function tick() {
     drawScene();
     animate();
+    gl.setTracing(false);
   }
 
 
@@ -384,24 +388,11 @@
 
 
 <body onload="webGLStart();">
-  <a href="http://learningwebgl.com/blog/?p=370">&lt;&lt; Back to Lesson 4</a><br />
+  Adapted from <a href="http://learningwebgl.com/blog/?p=370">Learning WebGL</a><br />
 
   <canvas id="lesson04-canvas" style="border: none;" width="500" height="500"></canvas>
 
-  <br/>
-  <a href="http://learningwebgl.com/blog/?p=370">&lt;&lt; Back to Lesson 4</a><br />
 
-
-<!-- Google Analytics stuff, please ignore - nothing to do with WebGL :-) -->
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-2240015-5");
-pageTracker._trackPageview();
-} catch(err) {}</script>
 
 </body>
 
