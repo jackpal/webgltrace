@@ -25,20 +25,17 @@ How to use it:
 4) Run your program in a WebGL-compatible browser, and then look
    at the Browser's Javascript console to see the trace output.
 
-Status:
-
-+ All webgl functions are traced.
-+ Numerical arguments that might be enums are printed as enums.
-+ String arguments are printed as properly escaped strings.
-
 Issues:
 - Objects created by the GL context while tracing is enabled have a property
   added to them to track their identity. This extra property could confuse
   code that iterates through the properties of an object and encounters this
   unexpected property.
-
-- The enum printing code is too eager to print out arguments as enums. For
-  example 0 is printed as gl.NONE even in non-enum contexts.
+  
+ToDo:
++ Be smarter about converting numbers to enums.
++ Give more information about texture objects.
++ Create arrays as variables, track arrays by content.
++ Recognize and handle array overlays.
 
 Credits:
 
