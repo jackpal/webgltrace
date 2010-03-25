@@ -17,6 +17,87 @@ var log = function(msg) {
 };
 
 /**
+ * Map of valid enum function argument positions.
+ */
+
+var glValidEnumContexts = {
+
+       // Generic setters and getters
+
+       'enable': { 0:true },
+       'disable': { 0:true },
+       'getParameter': { 0:true },
+
+       // Rendering
+
+       'drawArrays': { 0:true },
+       'drawElements': { 0:true, 2:true },
+
+       // Shaders
+
+       'createShader': { 0:true },
+       'getShaderParameter': { 1:true },
+       'getProgramParameter': { 1:true },
+
+       // Vertex attributes
+
+       'getVertexAttrib': { 1:true },
+       'vertexAttribPointer': { 2:true },
+
+       // Textures
+
+       'bindTexture': { 0:true },
+       'activeTexture': { 0:true },
+       'getTexParameter': { 0:true, 1:true },
+       'texParameterf': { 0:true, 1:true },
+       'texParameteri': { 0:true, 1:true, 2:true },
+       'texImage2D': { 0:true, 2:true, 6:true, 7:true },
+       'texSubImage2D': { 0:true, 6:true, 7:true },
+       'copyTexImage2D': { 0:true, 2:true },
+       'copyTexSubImage2D': { 0:true },
+       'generateMipmap': { 0:true },
+
+       // Buffer objects
+
+       'bindBuffer': { 0:true },
+       'bufferData': { 0:true, 2:true },
+       'bufferSubData': { 0:true },
+       'getBufferParameter': { 0:true, 1:true },
+
+       // Renderbuffers and framebuffers
+
+       'pixelStorei': { 0:true, 1:true },
+       'readPixels': { 4:true, 5:true },
+       'bindRenderbuffer': { 0:true },
+       'bindFramebuffer': { 0:true },
+       'checkFramebufferStatus': { 0:true },
+       'framebufferRenderbuffer': { 0:true, 1:true, 2:true },
+       'framebufferTexture2D': { 0:true, 1:true, 2:true },
+       'getFramebufferAttachmentParameter': { 0:true, 1:true, 2:true },
+       'getRenderbufferParameter': { 0:true, 1:true },
+       'renderbufferStorage': { 0:true, 1:true },
+
+       // Frame buffer operations (clear, blend, depth test, stencil)
+
+       'clear': { 0:true },
+       'depthFunc': { 0:true },
+       'blendFunc': { 0:true, 1:true },
+       'blendFuncSeparate': { 0:true, 1:true, 2:true, 3:true },
+       'blendEquation': { 0:true },
+       'blendEquationSeparate': { 0:true, 1:true },
+       'stencilFunc': { 0:true },
+       'stencilFuncSeparate': { 0:true, 1:true },
+       'stencilMaskSeparate': { 0:true },
+       'stencilOp': { 0:true, 1:true, 2:true },
+       'stencilOpSeparate': { 0:true, 1:true, 2:true, 3:true },
+
+       // Culling
+
+       'cullFace': { 0:true },
+       'frontFace': { 0:true },
+};
+
+/**
  * Map of numbers to names.
  * @type {Object}
  */
@@ -56,6 +137,25 @@ function checkInit() {
 function mightBeEnum(value) {
   checkInit();
   return (glEnums[value] !== undefined);
+}
+
+/**
+ * Returns true if 'value' matches any WebGL enum, and the i'th parameter
+ * of the WebGL function 'fname' is expected to be (any) enum. Does not
+ * check that 'value' is actually a valid i'th parameter to 'fname', as
+ * that will be checked by the WebGL implementation itself.
+ *
+ * @param {string} fname the GL function to use for screening the enum
+ * @param {integer} i the parameter index to use for screening the enum
+ * @param {any} value the value to check for being a valid i'th parameter to 'fname'
+ * @return {boolean} true if value matches one of the defined WebGL enums,
+ *         and the i'th parameter to 'fname' is expected to be an enum
+ *
+ * @author Tomi Aarnio
+ */
+function mightBeValidEnum(fname, i, value) {
+       if (!mightBeEnum(value)) return false;
+       return (fname in glValidEnumContexts) && (i in glValidEnumContexts[fname]);
 }
 
 /**
@@ -151,9 +251,9 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
       var counter = 0;
       return function() {
           var sym = name + counter;
-	      counter++;
-	      return sym;
-	  }
+          counter++;
+          return sym;
+      }
   }
   
   var constructorDict = {
@@ -170,29 +270,29 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
   var objectNameProperty = '__webgl_trace_name__';
   
   var arrayTypeDict = {
-  	"[object WebGLByteArray]" : "WebGLByteArray",
-  	"[object WebGLUnsignedByteArray]" : "WebGLUnsignedByteArray",
-  	"[object WebGLShortArray]" : "WebGLShortArray",
-  	"[object WebGLUnsignedShortArray]" : "WebGLUnsignedShortArray",
-  	"[object WebGLIntArray]" : "WebGLIntArray",
-  	"[object WebGLUnsignedIntArray]" : "WebGLUnsignedIntArray",
-  	"[object WebGLFloatArray]" : "WebGLFloatArray"
+    "[object WebGLByteArray]" : "WebGLByteArray",
+    "[object WebGLUnsignedByteArray]" : "WebGLUnsignedByteArray",
+    "[object WebGLShortArray]" : "WebGLShortArray",
+    "[object WebGLUnsignedShortArray]" : "WebGLUnsignedShortArray",
+    "[object WebGLIntArray]" : "WebGLIntArray",
+    "[object WebGLUnsignedIntArray]" : "WebGLUnsignedIntArray",
+    "[object WebGLFloatArray]" : "WebGLFloatArray"
   }
   
   function asWebGLArray(a) {
-  	var arrayType = arrayTypeDict[a];
-  	if (arrayType === undefined) {
-  	    return undefined;
-  	}
-  	var buf = 'new ' + arrayType + '( [';
-  	for (var i = 0; i < a.length; i++) {
-  	    if (i > 0 ) {
-  	        buf += ', ';
-  	    }
-  	    buf += a.get(i);
-  	}
-  	buf += '] )';
-  	return buf;
+    var arrayType = arrayTypeDict[a];
+    if (arrayType === undefined) {
+        return undefined;
+    }
+    var buf = 'new ' + arrayType + '( [';
+    for (var i = 0; i < a.length; i++) {
+        if (i > 0 ) {
+            buf += ', ';
+        }
+        buf += a.get(i);
+    }
+    buf += '] )';
+    return buf;
   };
   
   function traceFunctionCall(functionName, args) {
@@ -210,10 +310,10 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
             if (objectName != undefined ) {
                 argStr += objectName;
             } else if (webGLArray != undefined) {
-            	argStr += webGLArray;
+                argStr += webGLArray;
             }else if (typeof(arg) == "string") {
                 argStr += quote(arg);
-            } else if ( mightBeEnum(arg) ) {
+            } else if ( mightBeValidEnum(functionName, ii, arg) ) {
                 argStr += 'gl.' + glEnumToString(arg);
             } else {
                 argStr += arg;

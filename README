@@ -32,7 +32,6 @@ Issues:
   unexpected property.
   
 ToDo:
-+ Be smarter about converting numbers to enums.
 + Give more information about texture objects.
 + Create arrays as variables, track arrays by content.
 + Recognize and handle array overlays.
