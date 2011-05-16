@@ -339,7 +339,7 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
       
       var result = ctx[functionName].apply(ctx, arguments);
       
-      if (tracing && resultName != undefined) {
+      if (tracing && resultName != undefined && result != null) {
           result[objectNameProperty] = resultName;
       }
       
@@ -430,4 +430,3 @@ return {
 };
 
 }();
-
