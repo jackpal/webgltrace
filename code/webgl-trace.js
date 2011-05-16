@@ -315,6 +315,8 @@ function makeDebugContext(ctx, opt_onErrorFunc) {
                 argStr += quote(arg);
             } else if ( mightBeValidEnum(functionName, ii, arg) ) {
                 argStr += 'gl.' + glEnumToString(arg);
+            } else if ( arg != null && arg.constructor === Array ) {
+                argStr += '[' + arg + ']'
             } else {
                 argStr += arg;
             }
